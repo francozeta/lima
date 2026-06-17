@@ -1,4 +1,9 @@
-import { LayoutDashboardIcon, UserIcon } from "lucide-react";
+import {
+  CalendarDaysIcon,
+  LayoutDashboardIcon,
+  ShieldIcon,
+  UserIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import type { CurrentUser } from "@/lib/auth/session";
@@ -33,6 +38,16 @@ export function AppShell({
               <LayoutDashboardIcon />
               <span className="hidden sm:inline">Dashboard</span>
             </Link>
+            <Link className={navLinkClassName()} href="/hackathons">
+              <CalendarDaysIcon />
+              <span className="hidden sm:inline">Hackatones</span>
+            </Link>
+            {user.roles.includes("admin") ? (
+              <Link className={navLinkClassName()} href="/admin">
+                <ShieldIcon />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+            ) : null}
             <Link className={navLinkClassName()} href={`/profile/${user.id}`}>
               <UserIcon />
               <span className="hidden sm:inline">Perfil</span>

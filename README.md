@@ -2,8 +2,8 @@
 
 LIMA es una plataforma academica para gestionar hackatones dentro de CERTUS.
 
-Esta primera escala implementa identidad: Google Auth con Supabase, roles base,
-perfil editable y QR de perfil.
+La base actual implementa identidad, perfiles, roles base, catalogo de
+habilidades, CRUD de hackatones e inscripcion de participantes.
 
 ## Stack
 
@@ -46,6 +46,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 3. Ejecuta en Supabase SQL Editor:
    - `supabase/migrations/202606160001_identity.sql`
    - `supabase/migrations/202606160002_skills.sql`
+   - `supabase/migrations/202606160003_hackathons.sql`
 
 La migracion crea:
 
@@ -58,6 +59,9 @@ La migracion crea:
 - RLS y grants explicitos para la Data API
 - catalogo inicial de habilidades
 - relacion `profile_skills` para busqueda y matching futuro
+- `hackathons`
+- `hackathon_registrations`
+- semilla publicada para probar inscripciones
 
 ## Roles
 
@@ -124,6 +128,34 @@ Flujo manual:
 4. Abrir `/profile/[id]`.
 5. Completar perfil.
 6. Confirmar que el QR se renderiza en blanco y negro.
+
+## Verificacion Scale 2
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
+Flujo manual:
+
+1. Entrar como admin y abrir `/admin`.
+2. Abrir `/admin/hackathons`.
+3. Crear un hackaton en borrador.
+4. Cambiarlo a publicado.
+5. Entrar como participante a `/hackathons`.
+6. Abrir el detalle del hackaton.
+7. Inscribirse con perfil completo.
+8. Confirmar que el estado cambia a `Inscrito`.
+
+Rutas disponibles en esta escala:
+
+- `/dashboard`
+- `/hackathons`
+- `/hackathons/[id]`
+- `/admin`
+- `/admin/hackathons`
+- `/admin/users`
 
 ## Notas de colaboracion
 
