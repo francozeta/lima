@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LIMA
 
-## Getting Started
+LIMA es una plataforma academica para gestionar hackatones dentro de CERTUS.
 
-First, run the development server:
+Esta primera escala implementa identidad: Google Auth con Supabase, roles base,
+perfil editable y QR de perfil.
+
+## Stack
+
+- Next.js 16 App Router + TypeScript
+- React 19
+- Tailwind CSS v4
+- COSS UI / shadcn-compatible components
+- Supabase Auth, PostgreSQL y RLS
+- Server Actions
+- Next `proxy.ts` para refresco de sesion SSR
+
+## Setup local
+
+Instala dependencias:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Copia variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Variables requeridas:
 
-## Learn More
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Supabase setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. En Supabase Auth, habilita el provider Google.
+2. Agrega estos redirect URLs en Supabase:
+   - `http://localhost:3000/auth/callback`
+   - la URL de Vercel con `/auth/callback`
+3. Ejecuta en Supabase SQL Editor:
+   - `supabase/migrations/202606160001_identity.sql`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+La migracion crea:
 
-## Deploy on Vercel
+- `public.users`
+- `public.profiles`
+- `public.roles`
+- `public.user_roles`
+- trigger para sincronizar nuevos usuarios Auth
+- backfill para usuarios existentes
+- RLS y grants explicitos para la Data API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Desarrollo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm dev
+```
+
+Abre `http://localhost:3000`.
+
+## Verificacion Scale 1
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
+Flujo manual:
+
+1. Abrir `/dashboard` sin sesion debe redirigir a `/login`.
+2. Iniciar sesion con Google.
+3. Volver a `/dashboard`.
+4. Abrir `/profile/[id]`.
+5. Completar perfil.
+6. Confirmar que el QR se renderiza en blanco y negro.
+
+## Notas de colaboracion
+
+- `.agents/` y `skills-lock.json` son locales y estan ignorados por Git.
+- No subir `.env.local`.
+- La UI inicial es blanco y negro, inspirada en la sobriedad de Luma, sin copiar su marca.
