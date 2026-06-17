@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/card";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SkillPicker, type SkillOption } from "@/components/profile/skill-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { toastManager } from "@/components/ui/toast";
 
@@ -24,7 +24,7 @@ export type ProfileFormValues = {
   careerArea: string;
   experience: string;
   fullName: string;
-  skills: string;
+  skills: string[];
 };
 
 const initialProfileFormState = {
@@ -33,7 +33,13 @@ const initialProfileFormState = {
   ok: false,
 };
 
-export function ProfileForm({ values }: { values: ProfileFormValues }) {
+export function ProfileForm({
+  availableSkills,
+  values,
+}: {
+  availableSkills: SkillOption[];
+  values: ProfileFormValues;
+}) {
   const [state, action, pending] = useActionState(
     updateProfile,
     initialProfileFormState,
@@ -79,18 +85,11 @@ export function ProfileForm({ values }: { values: ProfileFormValues }) {
             <FieldError>{state.errors?.careerArea?.[0]}</FieldError>
           </Field>
 
-          <Field invalid={Boolean(state.errors?.skills?.[0])}>
-            <FieldLabel htmlFor="skills">Habilidades</FieldLabel>
-            <Input
-              aria-invalid={Boolean(state.errors?.skills?.[0])}
-              defaultValue={values.skills}
-              id="skills"
-              name="skills"
-              placeholder="React, Supabase, investigacion"
-            />
-            <FieldDescription>Separalas con comas.</FieldDescription>
-            <FieldError>{state.errors?.skills?.[0]}</FieldError>
-          </Field>
+          <SkillPicker
+            availableSkills={availableSkills}
+            error={state.errors?.skills?.[0]}
+            initialSkills={values.skills}
+          />
 
           <Field invalid={Boolean(state.errors?.experience?.[0])}>
             <FieldLabel htmlFor="experience">Experiencia breve</FieldLabel>

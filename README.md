@@ -45,6 +45,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
    - la URL de Vercel con `/auth/callback`
 3. Ejecuta en Supabase SQL Editor:
    - `supabase/migrations/202606160001_identity.sql`
+   - `supabase/migrations/202606160002_skills.sql`
 
 La migracion crea:
 
@@ -55,6 +56,49 @@ La migracion crea:
 - trigger para sincronizar nuevos usuarios Auth
 - backfill para usuarios existentes
 - RLS y grants explicitos para la Data API
+- catalogo inicial de habilidades
+- relacion `profile_skills` para busqueda y matching futuro
+
+## Roles
+
+Cada cuenta de Supabase Auth tiene un perfil y uno o mas roles:
+
+- `participant`: rol default para estudiantes/postulantes.
+- `judge`: rol adicional para jurados, docentes o mentores evaluadores.
+- `admin`: rol adicional para coordinadores que gestionan hackatones y usuarios.
+
+Para convertir un usuario en admin mientras aun no existe `/admin/users`:
+
+```sql
+insert into public.user_roles (user_id, role_id)
+select u.id, r.id
+from public.users u
+join public.roles r on r.slug = 'admin'
+where u.email = 'correo@ejemplo.com'
+on conflict do nothing;
+```
+
+Para convertir un usuario en jurado:
+
+```sql
+insert into public.user_roles (user_id, role_id)
+select u.id, r.id
+from public.users u
+join public.roles r on r.slug = 'judge'
+where u.email = 'correo@ejemplo.com'
+on conflict do nothing;
+```
+
+Para quitar un rol:
+
+```sql
+delete from public.user_roles ur
+using public.users u, public.roles r
+where ur.user_id = u.id
+  and ur.role_id = r.id
+  and u.email = 'correo@ejemplo.com'
+  and r.slug = 'judge';
+```
 
 ## Desarrollo
 
