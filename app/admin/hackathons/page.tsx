@@ -130,13 +130,21 @@ export default async function AdminHackathonsPage() {
                 {hackathons.map((hackathon) => (
                   <div className="grid gap-2" key={hackathon.id}>
                     <UpdateHackathonForm values={toFormValues(hackathon)} />
-                    <form action={deleteHackathon} className="flex justify-end">
-                      <input name="id" type="hidden" value={hackathon.id} />
-                      <Button type="submit" variant="destructive-outline">
-                        <Trash2Icon />
-                        Eliminar
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        render={<Link href={`/admin/hackathons/${hackathon.id}`} />}
+                        variant="outline"
+                      >
+                        Configurar
                       </Button>
-                    </form>
+                      <form action={deleteHackathon}>
+                        <input name="id" type="hidden" value={hackathon.id} />
+                        <Button type="submit" variant="destructive-outline">
+                          <Trash2Icon />
+                          Eliminar
+                        </Button>
+                      </form>
+                    </div>
                   </div>
                 ))}
               </div>

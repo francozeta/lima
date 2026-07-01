@@ -1,5 +1,6 @@
 import {
   CalendarDaysIcon,
+  ClipboardCheckIcon,
   LayoutDashboardIcon,
   ShieldIcon,
   UserIcon,
@@ -46,6 +47,12 @@ export function AppShell({
               <Link className={navLinkClassName()} href="/admin">
                 <ShieldIcon />
                 <span className="hidden sm:inline">Admin</span>
+              </Link>
+            ) : null}
+            {user.roles.includes("judge") || user.roles.includes("admin") ? (
+              <Link className={navLinkClassName()} href="/judge">
+                <ClipboardCheckIcon />
+                <span className="hidden sm:inline">Jurado</span>
               </Link>
             ) : null}
             <Link className={navLinkClassName()} href={`/profile/${user.id}`}>
