@@ -124,6 +124,11 @@ pnpm dev
 
 Abre `http://localhost:3000`.
 
+## Contribucion
+
+Lee [CONTRIBUTING.md](CONTRIBUTING.md) para ver el flujo recomendado de fork,
+sincronizacion, verificacion y pull request.
+
 ## Verificacion Scale 1
 
 ```bash
