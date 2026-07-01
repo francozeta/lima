@@ -4,6 +4,7 @@ import { ProfileForm } from "@/components/profile/profile-form";
 import { ProfileQrCard } from "@/components/profile/profile-qr-card";
 import { requireUser } from "@/lib/auth/session";
 import { createProfileQrDataUrl, getProfileUrl } from "@/lib/qr";
+import { getSiteUrl } from "@/lib/site-url";
 import { DEFAULT_SKILLS } from "@/lib/skills";
 import { createClient } from "@/lib/supabase/server";
 
@@ -82,7 +83,7 @@ export default async function ProfilePage({
     selectedSkillsFromRelation.length > 0
       ? selectedSkillsFromRelation
       : (profile.skills ?? []);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   const profileUrl = getProfileUrl(siteUrl, id);
   const qrDataUrl = await createProfileQrDataUrl(siteUrl, id);
 
