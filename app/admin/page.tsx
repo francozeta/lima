@@ -53,6 +53,8 @@ export default async function AdminPage() {
     { count: hackathonCount },
     { count: profileCount },
     { count: registrationCount },
+    { count: teamCount },
+    { count: projectCount },
   ] = await Promise.all([
     supabase.from("hackathons").select("*", { count: "exact", head: true }),
     supabase.from("profiles").select("*", { count: "exact", head: true }),
@@ -60,6 +62,11 @@ export default async function AdminPage() {
       .from("hackathon_registrations")
       .select("*", { count: "exact", head: true })
       .eq("status", "registered"),
+    supabase.from("teams").select("*", { count: "exact", head: true }),
+    supabase
+      .from("projects")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "submitted"),
   ]);
 
   return (
@@ -94,10 +101,10 @@ export default async function AdminPage() {
           value={registrationCount ?? "-"}
         />
         <StatCard
-          description="Se implementa en la siguiente escala"
+          description="Formados"
           icon={UserRoundIcon}
           label="Equipos"
-          value="0"
+          value={teamCount ?? "-"}
         />
       </div>
 
@@ -127,6 +134,20 @@ export default async function AdminPage() {
             <Button render={<Link href="/admin/users" />} variant="outline">
               Ver usuarios
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Proyectos enviados</CardTitle>
+            <CardDescription>
+              Entregables listos para revision de jurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-semibold tabular-nums">
+              {projectCount ?? "-"}
+            </p>
           </CardContent>
         </Card>
       </div>

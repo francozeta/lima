@@ -3,7 +3,8 @@
 LIMA es una plataforma academica para gestionar hackatones dentro de CERTUS.
 
 La base actual implementa identidad, perfiles, roles base, catalogo de
-habilidades, CRUD de hackatones e inscripcion de participantes.
+habilidades, CRUD de hackatones, inscripcion de participantes, equipos,
+entregables, evaluacion de jurado, ranking y publicacion de resultados.
 
 ## Stack
 
@@ -47,6 +48,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
    - `supabase/migrations/202606160001_identity.sql`
    - `supabase/migrations/202606160002_skills.sql`
    - `supabase/migrations/202606160003_hackathons.sql`
+   - `supabase/migrations/202606300004_mvp_workflow.sql`
 
 La migracion crea:
 
@@ -62,6 +64,16 @@ La migracion crea:
 - `hackathons`
 - `hackathon_registrations`
 - semilla publicada para probar inscripciones
+- `teams`
+- `team_members`
+- `projects`
+- `project_files`
+- `evaluation_criteria`
+- `judge_assignments`
+- `evaluations`
+- `evaluation_scores`
+- `results_publications`
+- bucket privado `project-deliverables` para PDF/PPT/PPTX/ZIP
 
 ## Roles
 
@@ -153,9 +165,34 @@ Rutas disponibles en esta escala:
 - `/dashboard`
 - `/hackathons`
 - `/hackathons/[id]`
+- `/teams/[id]`
+- `/judge`
+- `/results/[hackathonId]`
 - `/admin`
 - `/admin/hackathons`
+- `/admin/hackathons/[id]`
 - `/admin/users`
+
+## Flujo MVP completo
+
+1. Usuario inicia sesion con Google.
+2. Completa perfil y habilidades.
+3. Se inscribe a un hackaton publicado.
+4. Crea un equipo o se une con codigo.
+5. Completa ficha de proyecto.
+6. Sube entregable PDF, PPT/PPTX o ZIP.
+7. Admin asigna jurados y criterios.
+8. Jurado evalua proyectos enviados.
+9. LIMA calcula ranking ponderado.
+10. Admin publica resultados.
+
+## Supuestos del MVP
+
+- Un participante puede pertenecer a un equipo por hackaton.
+- La invitacion de equipo usa codigo visible, no email.
+- El jurado se asigna a nivel hackaton y evalua todos sus proyectos enviados.
+- El ranking usa promedio de evaluaciones validadas con criterios ponderados.
+- Los entregables se guardan en Supabase Storage en un bucket privado.
 
 ## Notas de colaboracion
 

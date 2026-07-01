@@ -1,6 +1,7 @@
 import { CalendarDaysIcon, MapPinIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { createTeam, joinTeam } from "@/app/actions/teams";
 import { RegistrationPanel } from "@/components/hackathons/registration-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   formatDateRange,
   formatDateTime,
@@ -42,11 +45,21 @@ type RegistrationRow = {
   status: string;
 };
 
+type TeamRow = {
+  id: string;
+  join_code: string;
+  name: string;
+  team_members: { user_id: string }[] | null;
+};
+
 function noticeText(notice?: string) {
   if (notice === "registered") return "Inscripcion confirmada.";
   if (notice === "cancelled") return "Inscripcion cancelada.";
   if (notice === "closed") return "Las inscripciones ya no estan abiertas.";
   if (notice === "error") return "No pudimos procesar la inscripcion.";
+  if (notice === "team-not-found") return "No encontramos un equipo con ese codigo.";
+  if (notice === "team-full") return "Ese equipo ya esta completo.";
+  if (notice === "team-error" || notice === "join-error") return "No pudimos procesar el equipo.";
   return null;
 }
 
@@ -66,6 +79,8 @@ export default async function HackathonDetailPage({
     { data: hackathonData, error: hackathonError },
     { data: registrationData },
     { data: profile },
+    { data: teamsData },
+    { data: publication },
   ] = await Promise.all([
     supabase
       .from("hackathons")
@@ -84,6 +99,16 @@ export default async function HackathonDetailPage({
       .from("profiles")
       .select("completed_at")
       .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("teams")
+      .select("id,name,join_code,team_members(user_id)")
+      .eq("hackathon_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("results_publications")
+      .select("published_at")
+      .eq("hackathon_id", id)
       .maybeSingle(),
   ]);
 
@@ -108,6 +133,10 @@ export default async function HackathonDetailPage({
   const hackathon = hackathonData as HackathonDetailRow;
   const registration = registrationData as RegistrationRow | null;
   const isRegistered = registration?.status === "registered";
+  const teams = (teamsData ?? []) as TeamRow[];
+  const myTeam = teams.find((team) =>
+    (team.team_members ?? []).some((member) => member.user_id === user.id),
+  );
   const isOpen = isRegistrationOpen({
     registrationDeadline: hackathon.registration_deadline,
     status: hackathon.status,
@@ -188,15 +217,125 @@ export default async function HackathonDetailPage({
           </CardContent>
         </Card>
 
-        <RegistrationPanel
-          hackathonId={hackathon.id}
-          isOpen={isOpen}
-          isProfileComplete={Boolean(profile?.completed_at)}
-          isRegistered={isRegistered}
-          profileUrl={`/profile/${user.id}`}
-          registrationDeadline={hackathon.registration_deadline}
-        />
+        <div className="space-y-4">
+          <RegistrationPanel
+            hackathonId={hackathon.id}
+            isOpen={isOpen}
+            isProfileComplete={Boolean(profile?.completed_at)}
+            isRegistered={isRegistered}
+            profileUrl={`/profile/${user.id}`}
+            registrationDeadline={hackathon.registration_deadline}
+          />
+
+          {publication ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Resultados</CardTitle>
+                <CardDescription>El ranking final ya fue publicado.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button render={<Link href={`/results/${hackathon.id}`} />}>
+                  Ver ranking
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
       </div>
+
+      {isRegistered ? (
+        <section className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Equipos</CardTitle>
+              <CardDescription>
+                Crea uno nuevo o usa un codigo para unirte.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {teams.length > 0 ? (
+                teams.map((team) => (
+                  <div
+                    className="flex flex-col gap-3 rounded-lg border bg-background p-3 sm:flex-row sm:items-center sm:justify-between"
+                    key={team.id}
+                  >
+                    <div>
+                      <p className="font-medium">{team.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {(team.team_members ?? []).length} integrante(s)
+                      </p>
+                    </div>
+                    <Button
+                      render={<Link href={`/teams/${team.id}`} />}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Ver equipo
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Todavia no hay equipos.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="space-y-4">
+            {myTeam ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tu equipo</CardTitle>
+                  <CardDescription>{myTeam.name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button render={<Link href={`/teams/${myTeam.id}`} />}>
+                    Abrir equipo
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Crear equipo</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form action={createTeam} className="space-y-3">
+                      <input name="hackathonId" type="hidden" value={hackathon.id} />
+                      <Field>
+                        <FieldLabel htmlFor="teamName">Nombre</FieldLabel>
+                        <Input id="teamName" name="name" />
+                      </Field>
+                      <Button type="submit">Crear equipo</Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Unirse</CardTitle>
+                    <CardDescription>Usa el codigo de invitacion.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form action={joinTeam} className="space-y-3">
+                      <input name="hackathonId" type="hidden" value={hackathon.id} />
+                      <Field>
+                        <FieldLabel htmlFor="joinCode">Codigo</FieldLabel>
+                        <Input id="joinCode" name="joinCode" />
+                      </Field>
+                      <Button type="submit" variant="outline">
+                        Unirme
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </section>
+      ) : null}
     </AppShell>
   );
 }

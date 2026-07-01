@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { updateUserRoles } from "@/app/actions/admin";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -106,6 +107,7 @@ export default async function AdminUsersPage() {
               <TableHead>Roles</TableHead>
               <TableHead>Perfil</TableHead>
               <TableHead>Creado</TableHead>
+              <TableHead>Accion</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -120,17 +122,39 @@ export default async function AdminUsersPage() {
                     <div className="mt-1 text-muted-foreground">{row.email}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {roles.length > 0 ? (
-                        roles.map((role) => (
-                          <Badge key={role} variant="outline">
-                            {role}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-muted-foreground">Sin rol</span>
-                      )}
-                    </div>
+                    <form action={updateUserRoles} className="grid gap-2">
+                      <input name="userId" type="hidden" value={row.id} />
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          defaultChecked={roles.includes("participant")}
+                          name="roles"
+                          type="checkbox"
+                          value="participant"
+                        />
+                        participant
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          defaultChecked={roles.includes("judge")}
+                          name="roles"
+                          type="checkbox"
+                          value="judge"
+                        />
+                        judge
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          defaultChecked={roles.includes("admin")}
+                          name="roles"
+                          type="checkbox"
+                          value="admin"
+                        />
+                        admin
+                      </label>
+                      <Button size="sm" type="submit" variant="outline">
+                        Guardar
+                      </Button>
+                    </form>
                   </TableCell>
                   <TableCell>
                     {profile?.completed_at ? (
@@ -140,6 +164,15 @@ export default async function AdminUsersPage() {
                     )}
                   </TableCell>
                   <TableCell>{formatDateTime(row.created_at)}</TableCell>
+                  <TableCell>
+                    <Button
+                      render={<Link href={`/profile/${row.id}`} />}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      Perfil
+                    </Button>
+                  </TableCell>
                 </TableRow>
               );
             })}

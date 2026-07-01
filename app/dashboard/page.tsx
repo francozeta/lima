@@ -16,7 +16,11 @@ import { createClient } from "@/lib/supabase/server";
 export default async function DashboardPage() {
   const user = await requireUser();
   const supabase = await createClient();
-  const [{ data: profile }, { count: registrationCount }] = await Promise.all([
+  const [
+    { data: profile },
+    { count: registrationCount },
+    { count: teamMembershipCount },
+  ] = await Promise.all([
     supabase
       .from("profiles")
       .select("career_area,skills,experience,completed_at")
@@ -27,6 +31,10 @@ export default async function DashboardPage() {
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("status", "registered"),
+    supabase
+      .from("team_members")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id),
   ]);
 
   const profileComplete = Boolean(profile?.completed_at);
@@ -89,6 +97,21 @@ export default async function DashboardPage() {
             >
               Explorar
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Equipos</CardTitle>
+            <CardDescription>Participaciones activas.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-semibold tabular-nums">
+              {teamMembershipCount ?? 0}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              equipos vinculados
+            </p>
           </CardContent>
         </Card>
 
